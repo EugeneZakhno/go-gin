@@ -4,17 +4,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func authMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Simulate authentication
+		if c.GetHeader("Authorization") != "secret" {
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+			return
+		}
+		c.Next()
+	}
+}
+
 func main() {
 	router := gin.Default()
-	// Create a routing group
-	v1 := router.Group("/v1")
+	// Add Logger and Recovery middleware globally
+	// Create a routing group, and all routes in this group will apply the authMiddleware middleware
+	authenticated := router.Group("/")
+	authenticated.Use(authMiddleware())
 	{
-		v1.GET("/users", func(c *gin.Context) {
-			c.String(200, "User list in v1")
+		authenticated.GET("/hello", func(c *gin.Context) {
+			c.String(200, "Hello, World!")
 		})
-		v1.GET("/posts", func(c *gin.Context) {
-			c.String(200, "Post list in v1")
+
+		authenticated.GET("/private", func(c *gin.Context) {
+			c.String(200, "Private data")
 		})
 	}
+
+	// Not in the routing group, so the authMiddleware middleware is not applied
+	router.GET("/welcome", func(c *gin.Context) {
+		c.String(200, "Welcome!")
+	})
+
 	router.Run(":8080")
 }
