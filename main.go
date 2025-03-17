@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"fmt"
 )
 
 func authMiddleware() gin.HandlerFunc {
